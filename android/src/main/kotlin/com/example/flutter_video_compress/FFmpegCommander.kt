@@ -1,13 +1,13 @@
 package com.example.flutter_video_compress
 
 import android.content.Context
+import android.util.Log
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
 import nl.bravobit.ffmpeg.ExecuteBinaryResponseHandler
 import nl.bravobit.ffmpeg.FFmpeg
 import nl.bravobit.ffmpeg.FFtask
-import java.io.File
-import android.util.Log
 
 class FFmpegCommander(private val context: Context, private val channelName: String) {
     private var stopCommand = false
@@ -15,11 +15,17 @@ class FFmpegCommander(private val context: Context, private val channelName: Str
     private val utility = Utility(channelName)
     private var totalTime: Long = 0
 
-
-    fun compressVideo(path: String, quality: VideoQuality, deleteOrigin: Boolean,
-                      startTime: Int?, duration: Int? = null, includeAudio: Boolean?,
-                      frameRate: Int?, result: MethodChannel.Result,
-                      messenger: BinaryMessenger) {
+    fun compressVideo(
+            path: String,
+            quality: VideoQuality,
+            deleteOrigin: Boolean,
+            startTime: Int?,
+            duration: Int? = null,
+            includeAudio: Boolean?,
+            frameRate: Int?,
+            result: MethodChannel.Result,
+            messenger: BinaryMessenger
+    ) {
 
         val ffmpeg = FFmpeg.getInstance(context)
 
@@ -37,7 +43,7 @@ class FFmpegCommander(private val context: Context, private val channelName: Str
 
         val scale = quality.getScaleString()
         Log.d("TAG", scale)
-        val cmdArray = mutableListOf("-noautorotate", "-i", path, "-vcodec", "h264", "-crf", "28", "-movflags", "+faststart", "-vf", "scale=1080x1080", "-filter:v ","crop=640:480:200:150", "-preset:v", "veryslow", "-b:v", "1000k")
+        val cmdArray = mutableListOf("-noautorotate", "-i", path, "-vcodec", "h264", "-crf", "28", "-movflags", "+faststart", "-vf", "scale=1080x1080", "-filter:v ", "crop=1080:1080:keep_aspect=1", "-preset:v", "veryslow", "-b:v", "1000k")
 
         // Add high bitrate for the highest quality
 //        if (quality.isHighQuality()) {
@@ -95,9 +101,14 @@ class FFmpegCommander(private val context: Context, private val channelName: Str
 
     private fun isLandscapeImage(orientation: Int) = orientation != 90 && orientation != 270
 
-
-    fun convertVideoToGif(path: String, startTime: Long = 0, endTime: Long, duration: Long,
-                          result: MethodChannel.Result, messenger: BinaryMessenger) {
+    fun convertVideoToGif(
+            path: String,
+            startTime: Long = 0,
+            endTime: Long,
+            duration: Long,
+            result: MethodChannel.Result,
+            messenger: BinaryMessenger
+    ) {
         var gifDuration = 0L
         if (endTime > 0) {
             if (startTime > endTime) {
@@ -121,12 +132,11 @@ class FFmpegCommander(private val context: Context, private val channelName: Str
 
         if (dir != null && !dir.exists()) dir.mkdirs()
 
-
         val file = File(dir, utility.getFileNameWithGifExtension(path))
         utility.deleteFile(file)
 
         val cmd = arrayOf("-i", path, "-ss", startTime.toString(), "-t", gifDuration.toString(),
-                "-vf", "scale=640:-2", "-r", "15", file.absolutePath)
+                "-vf", "scale=1080:1080", "-r", "15", file.absolutePath)
 
         this.ffTask = ffmpeg.execute(cmd, object : ExecuteBinaryResponseHandler() {
             override fun onProgress(message: String) {
