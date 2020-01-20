@@ -24,6 +24,8 @@ class FFmpegCommander(private val context: Context, private val channelName: Str
             includeAudio: Boolean?,
             frameRate: Int?,
             result: MethodChannel.Result,
+            crop: String?,
+            scaling: String?,
             messenger: BinaryMessenger
     ) {
 
@@ -42,13 +44,24 @@ class FFmpegCommander(private val context: Context, private val channelName: Str
         utility.deleteFile(file)
 
         val scale = quality.getScaleString()
-        Log.d("TAG", scale)
-        val cmdArray = mutableListOf("-noautorotate", "-i", path, "-vcodec", "h264", "-crf", "28", "-movflags", "+faststart", "-vf", "scale=1080x1080", "-filter:v ", "crop=1080:1080:keep_aspect=1", "-preset:v", "veryslow", "-b:v", "1000k")
+        Log.d("TAG Scaler", scale)
+//
+        val cmdArray = mutableListOf("-noautorotate", "-i", path, "-vcodec", "h264", "-crf", "28", "-movflags", "+faststart")
 
-        // Add high bitrate for the highest quality
-//        if (quality.isHighQuality()) {
-//            cmdArray.addAll(listOf("-preset:v", "ultrafast", "-b:v", "1000k"))
-//        }
+        if(crop != null){
+//            Log.d("Crop at", crop)
+            cmdArray.addAll(listOf("-filter:v ", "crop=" + crop))
+        }
+//
+        if(scaling != null){
+//            Log.d("Scale at", scaling)
+            cmdArray.addAll(listOf("-vf", "scale=" + scaling))
+        }
+
+//         Add high bitrate for the highest quality
+        if (quality.isHighQuality()) {
+            cmdArray.addAll(listOf("-preset:v", "ultrafast", "-b:v", "1000k"))
+        }
 
         if (startTime != null) {
             cmdArray.add("-ss")
@@ -95,6 +108,10 @@ class FFmpegCommander(private val context: Context, private val channelName: Str
                             File(path).delete()
                         }
                         totalTime = 0
+                    }
+
+                    override fun onFailure(message: String?) {
+                        Log.d("FVC Failed ==> ", message)
                     }
                 })
     }
@@ -145,6 +162,11 @@ class FFmpegCommander(private val context: Context, private val channelName: Str
 
             override fun onFinish() {
                 result.success(file.absolutePath)
+            }
+
+
+            override fun onFailure(message: String?) {
+                Log.d("FVC Failed ==> ", message)
             }
         })
     }

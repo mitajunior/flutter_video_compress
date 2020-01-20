@@ -52,9 +52,11 @@ class FlutterVideoCompressPlugin : MethodCallHandler {
                 val duration = call.argument<Int>("duration")
                 val includeAudio = call.argument<Boolean>("includeAudio")
                 val frameRate = call.argument<Int>("frameRate")
+                val crop = call.argument<String>("crop")
+                val scaling = call.argument<String>("scaling")
 
                 ffmpegCommander?.compressVideo(path, VideoQuality.from(quality), deleteOrigin,
-                        startTime, duration, includeAudio, frameRate, result, reg.messenger())
+                        startTime, duration, includeAudio, frameRate, result, crop, scaling, reg.messenger())
             }
             "cancelCompression" -> {
                 ffmpegCommander?.cancelCompression()

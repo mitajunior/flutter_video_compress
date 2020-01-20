@@ -60,6 +60,8 @@ class _MyAppState extends State<MyApp> {
       videoFile.path,
       quality: VideoQuality.DefaultQuality,
       deleteOrigin: false,
+      crop: "100:100",
+//      scaling: "150x150"
     );
     _taskName = null;
     print(
